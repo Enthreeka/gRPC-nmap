@@ -1,0 +1,75 @@
+// import (
+// 	"context"
+// 	"net"
+// 	"github.com/Ullaakut/nmap"
+// )
+
+// type NetVulnServiceServerImpl struct{}
+
+// func (s *NetVulnServiceServerImpl) CheckVuln(ctx context.Context, req *netvuln.CheckVulnRequest) (*netvuln.CheckVulnResponse, error) {
+// 	var results []*netvuln.TargetResult
+
+// 	for _, target := range req.GetTargets() {
+// 		vulns, err := checkVulnerabilities(target, req.GetTcpPorts())
+// 		if err != nil {
+// 			return nil, err
+// 		}
+
+// 		result := &netvuln.TargetResult{
+// 			Target: target,
+// 			Vulns:  vulns,
+// 		}
+
+// 		results = append(results, result)
+// 	}
+
+// 	return &netvuln.CheckVulnResponse{Results: results}, nil
+// }
+
+// func checkVulnerabilities(target string, ports []int32) ([]*netvuln.Vulnerability, error) {
+// 	// Здесь вы можете использовать nmap для сканирования целевого хоста на наличие уязвимостей.
+// 	// Это просто пример, вам нужно будет реализовать свою собственную логику для определения уязвимостей.
+// 	scanner, err := nmap.NewScanner(
+// 		nmap.WithTargets(target),
+// 		nmap.WithPorts(portsToString(ports)),
+// 		nmap.WithServiceInfo(),
+// 	)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	result, warnings, err := scanner.Run()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// Обработка результатов сканирования и преобразование их в уязвимости.
+// 	// Это просто пример, вам нужно будет реализовать свою собственную логику для определения уязвимостей.
+// 	var vulns []*netvuln.Vulnerability
+// 	for _, host := range result.Hosts {
+// 		if len(host.Ports) == 0 || len(host.Addresses) == 0 {
+// 			continue
+// 		}
+
+// 		for _, port := range host.Ports {
+// 			if port.Status().State == nmap.Open {
+// 				vuln := &netvuln.Vulnerability{
+// 					Identifier: fmt.Sprintf("Potential vulnerability on %s:%d", host.Addresses[0], port.ID),
+// 					CvssScore:  5.0, // Это просто пример, вам нужно будет реализовать свою собственную логику для определения CVSS оценки.
+// 				}
+
+// 				vulns = append(vulns, vuln)
+// 			}
+// 		}
+// 	}
+
+// 	return vulns, nil
+// }
+
+// func portsToString(ports []int32) string {
+// 	var strPorts []string
+// 	for _, port := range ports {
+// 		strPorts = append(strPorts, strconv.Itoa(int(port)))
+// 	}
+// 	return strings.Join(strPorts, ",")
+// }

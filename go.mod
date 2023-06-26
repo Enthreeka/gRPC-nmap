@@ -1,4 +1,5 @@
 module github.com/Enthreeka/gRPC-nmap
+
 go 1.20
 
 require (
@@ -9,6 +10,7 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/lair-framework/go-nmap v0.0.0-20191202052157-3507e0b03523 // indirect
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect

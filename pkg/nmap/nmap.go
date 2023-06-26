@@ -18,12 +18,12 @@ func NewNmapScanner() *Nmap {
 
 func (n *Nmap) Scanner(ctx context.Context, req *pb.CheckVulnRequest) (*nmap.Run, error) {
 
-	tcpPortStr := strconv.Itoa(int(req.TcpPort))
-
 	scanner, err := nmap.NewScanner(
 		ctx,
 		nmap.WithTargets(req.Targets...),
-		nmap.WithPorts(tcpPortStr),
+		nmap.WithPorts(intToString(req.TcpPort)...),
+		nmap.WithScripts("vulners"),
+		//	nmap.WithCustomArguments("-sV"),
 	)
 	if err != nil {
 		log.Fatalf("unable to create nmap scanner: %v", err)
@@ -38,5 +38,15 @@ func (n *Nmap) Scanner(ctx context.Context, req *pb.CheckVulnRequest) (*nmap.Run
 	}
 
 	return result, err
+}
 
+func intToString(arr []int32) []string {
+	var arrStr []string
+
+	for _, el := range arr {
+		strEl := strconv.Itoa(int(el))
+		arrStr = append(arrStr, strEl)
+	}
+
+	return arrStr
 }

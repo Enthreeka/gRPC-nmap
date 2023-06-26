@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"strconv"
 
 	pb "github.com/Enthreeka/gRPC-nmap/internal/delivery/grpc/netvuln"
 	"github.com/Enthreeka/gRPC-nmap/pkg/nmap"
@@ -37,6 +39,7 @@ func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest)
 		}
 
 		for _, port := range host.Ports {
+
 			service := &pb.Service{
 				Name:    port.Service.Name,
 				Version: port.Service.Version,
@@ -44,10 +47,18 @@ func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest)
 				Vulns:   make([]*pb.Vulnerability, 0),
 			}
 
-			for _, vuln := range port.Scripts {
+			for _, script := range port.Scripts {
+
+				cvssFloat, err := strconv.ParseFloat(script.Output, 32)
+				if err != nil {
+					log.Printf("failed to convert string to float64: %v", err)
+				}
+
+				fmt.Println(script.Output)
+
 				v := &pb.Vulnerability{
-					Identifier: vuln.ID,
-					CvssScore:  1.4,
+					Identifier: script.ID,
+					CvssScore:  float32(cvssFloat),
 				}
 
 				service.Vulns = append(service.Vulns, v)
@@ -55,7 +66,6 @@ func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest)
 
 			targetResult.Services = append(targetResult.Services, service)
 		}
-
 		response.Results = append(response.Results, targetResult)
 	}
 

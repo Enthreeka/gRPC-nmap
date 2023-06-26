@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: internal/delivery/grpc/netvuln/netvuln.proto
+// source: netvuln.proto
 
 package netvuln_v1
 
@@ -105,5 +105,5 @@ var NetVulnService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "internal/delivery/grpc/netvuln/netvuln.proto",
+	Metadata: "netvuln.proto",
 }

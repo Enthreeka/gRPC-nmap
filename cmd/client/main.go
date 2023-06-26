@@ -1,50 +1,55 @@
-	package main
+package main
 
-	import (
-		"context"
-		"encoding/json"
-		"fmt"
-		"log"
-		"time"
+import (
+	"context"
+	"encoding/json"
+	"log"
+	"time"
 
-		pb "github.com/Enthreeka/gRPC-nmap/internal/delivery/grpc/netvuln"
-		"google.golang.org/grpc"
-	)
+	"github.com/Enthreeka/gRPC-nmap/internal/config"
+	pb "github.com/Enthreeka/gRPC-nmap/internal/delivery/grpc/netvuln"
+	"google.golang.org/grpc"
+)
 
-	const (
-		address = "localhost:50051"
-	)
+func main() {
 
-	func main() {
+	configPath := "C:/Users/world/go-workspace/gRPC-nmap/configs/config.json"
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-
-		defer cancel()
-
-		conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
-
-		if err != nil {
-			log.Fatalf("did not connect: %v", err)
-		}
-		defer conn.Close()
-
-		c := pb.NewNetVulnServiceClient(conn)
-
-		request := &pb.CheckVulnRequest{
-			Targets: []string{"31.13.81.36", "172.217.16.46", "216.58.215.110"},
-			TcpPort: int32(80),
-		}
-
-		response, err := c.CheckVuln(ctx, request)
-		if err != nil {
-			log.Printf("failed to get response from server: %v", err)
-		}
-
-		responseByte, err := json.MarshalIndent(&response, " ", " ")
-		if err != nil {
-			log.Printf("unable to marshaling response struct: %v", err)
-		}
-
-		fmt.Printf(string(responseByte))
-
+	cfg, err := config.New(configPath)
+	if err != nil {
+		log.Printf("failed to load config: %v", err)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+	defer cancel()
+
+	conn, err := grpc.Dial(cfg.ClientGrpc.Port, grpc.WithInsecure(), grpc.WithBlock())
+
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+
+	c := pb.NewNetVulnServiceClient(conn)
+
+	request := &pb.CheckVulnRequest{
+		Targets: []string{"31.13.81.36", "youtube.com"},
+		TcpPort: []int32{80, 443},
+	}
+
+	r, err := c.CheckVuln(ctx, request)
+	if err != nil {
+		log.Printf("failed to get response from server: %v", err)
+	}
+
+	result := r.GetResults()
+
+	resultByte, err := json.MarshalIndent(&result, " ", " ")
+	if err != nil {
+		log.Printf("unable to marshaling response struct: %v", err)
+	}
+
+	log.Printf("Results: %s", resultByte)
+
+}

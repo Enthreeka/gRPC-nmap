@@ -20,7 +20,7 @@ func main() {
 		log.Printf("failed to load config: %v", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 
 	defer cancel()
 
@@ -34,8 +34,8 @@ func main() {
 	c := pb.NewNetVulnServiceClient(conn)
 
 	request := &pb.CheckVulnRequest{
-		Targets: []string{"31.13.81.36", "youtube.com"},
-		TcpPort: []int32{80, 443},
+		Targets: []string{"scanme.nmap.org"},
+		TcpPort: []int32{80},
 	}
 
 	r, err := c.CheckVuln(ctx, request)

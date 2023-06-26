@@ -22,8 +22,8 @@ func (n *Nmap) Scanner(ctx context.Context, req *pb.CheckVulnRequest) (*nmap.Run
 		ctx,
 		nmap.WithTargets(req.Targets...),
 		nmap.WithPorts(intToString(req.TcpPort)...),
+		nmap.WithServiceInfo(),
 		nmap.WithScripts("vulners"),
-		//	nmap.WithCustomArguments("-sV"),
 	)
 	if err != nil {
 		log.Fatalf("unable to create nmap scanner: %v", err)

@@ -2,12 +2,12 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strconv"
 
 	pb "github.com/Enthreeka/gRPC-nmap/internal/delivery/grpc/netvuln"
 	"github.com/Enthreeka/gRPC-nmap/pkg/nmap"
+	vulvmap "github.com/Ullaakut/nmap/v3"
 )
 
 type netVulnSerice struct {
@@ -21,7 +21,6 @@ func NewNetVulnGrpcService(nmap *nmap.Nmap) NetVulnService {
 }
 
 func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest) (*pb.CheckVulnResponse, error) {
-
 	result, err := n.nmap.Scanner(ctx, req)
 	if err != nil {
 		log.Printf("error during nmap scan: %v", err)
@@ -47,21 +46,9 @@ func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest)
 				Vulns:   make([]*pb.Vulnerability, 0),
 			}
 
-			for _, script := range port.Scripts {
-
-				cvssFloat, err := strconv.ParseFloat(script.Output, 32)
-				if err != nil {
-					log.Printf("failed to convert string to float64: %v", err)
-				}
-
-				fmt.Println(script.Output)
-
-				v := &pb.Vulnerability{
-					Identifier: script.ID,
-					CvssScore:  float32(cvssFloat),
-				}
-
-				service.Vulns = append(service.Vulns, v)
+			vulns := createCvssAndId(&port)
+			for _, vuln := range vulns {
+				service.Vulns = append(service.Vulns, vuln)
 			}
 
 			targetResult.Services = append(targetResult.Services, service)
@@ -70,4 +57,35 @@ func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest)
 	}
 
 	return response, nil
+}
+
+func createCvssAndId(port *vulvmap.Port) []*pb.Vulnerability {
+	vulns := make([]*pb.Vulnerability, 0)
+
+	for _, script := range port.Scripts {
+
+		if script.ID == "vulners" {
+
+			for _, table := range script.Tables[0].Tables {
+
+				vuln := &pb.Vulnerability{}
+				for _, el := range table.Elements {
+
+					switch el.Key {
+
+					case "id":
+						vuln.Identifier = el.Value
+					case "cvss":
+						cvssFloat, err := strconv.ParseFloat(el.Value, 32)
+						if err != nil {
+							log.Printf("failed to convert string to float64: %v", err)
+						}
+						vuln.CvssScore = float32(cvssFloat)
+					}
+				}
+				vulns = append(vulns, vuln)
+			}
+		}
+	}
+	return vulns
 }

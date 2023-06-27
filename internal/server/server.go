@@ -22,10 +22,10 @@ func Run(log *logger.Logger, cfg *config.Config) error {
 		return err
 	}
 
-	nmap := nmap.NewNmapScanner()
+	nmap := nmap.NewNmapScanner(log)
 
-	netVulnService := usecase.NewNetVulnGrpcService(nmap)
-	vulnGrpcServer := netvulnGrpc.NewVulnGrpcServerHandler(netVulnService)
+	netVulnService := usecase.NewNetVulnGrpcService(nmap, log)
+	vulnGrpcServer := netvulnGrpc.NewVulnGrpcServerHandler(netVulnService, log)
 
 	s := grpc.NewServer()
 	pb.RegisterNetVulnServiceServer(s, vulnGrpcServer)

@@ -1,33 +1,37 @@
 package logger
 
 import (
-	"log"
-	"os"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type Logger struct {
-	info  *log.Logger
-	error *log.Logger
+	sugarLogger *zap.SugaredLogger
 }
 
-func (logger *Logger) Info(format string, v ...any) {
-	logger.info.Printf(format, v...)
+func (l *Logger) Info(format string, v ...any) {
+	l.sugarLogger.Infof(format, v...)
 }
 
-func (logger *Logger) Error(format string, v ...any) {
-	logger.error.Printf(format, v...)
+func (l *Logger) Error(format string, v ...any) {
+	l.sugarLogger.Infof(format, v...)
 }
 
-func (logger *Logger) Fatal(format string, v ...any) {
-	logger.error.Fatalf(format, v...)
+func (l *Logger) Fatal(format string, v ...any) {
+	l.sugarLogger.Fatalf(format, v...)
 }
 
 func New() *Logger {
-	info := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	error := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	config := zap.NewDevelopmentConfig()
+	config.DisableStacktrace = true
+
+	config.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
+	logger, _ := config.Build()
+	sugarLogger := logger.Sugar()
 
 	return &Logger{
-		info:  info,
-		error: error,
+		sugarLogger: sugarLogger,
 	}
 }

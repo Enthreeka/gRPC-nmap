@@ -2,20 +2,22 @@ package grpc
 
 import (
 	"context"
-	"log"
 
 	pb "github.com/Enthreeka/gRPC-nmap/internal/delivery/grpc/netvuln"
 	"github.com/Enthreeka/gRPC-nmap/internal/usecase"
+	"github.com/Enthreeka/gRPC-nmap/pkg/logger"
 )
 
 type vulnServer struct {
 	usecase usecase.NetVulnService
+	log     *logger.Logger
 	pb.UnimplementedNetVulnServiceServer
 }
 
-func NewVulnGrpcServerHandler(usecase usecase.NetVulnService) pb.NetVulnServiceServer {
+func NewVulnGrpcServerHandler(usecase usecase.NetVulnService, log *logger.Logger) pb.NetVulnServiceServer {
 	return &vulnServer{
 		usecase: usecase,
+		log:     log,
 	}
 }
 
@@ -23,7 +25,7 @@ func (v *vulnServer) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest) (*
 
 	response, err := v.usecase.CheckVuln(ctx, req)
 	if err != nil {
-		log.Printf("failed with method in usecase: %v", err)
+		v.log.Error("failed with method in usecase: %v", err)
 	}
 
 	return response, nil

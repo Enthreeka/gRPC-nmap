@@ -2,28 +2,31 @@ package usecase
 
 import (
 	"context"
-	"log"
 	"strconv"
 
 	pb "github.com/Enthreeka/gRPC-nmap/internal/delivery/grpc/netvuln"
+	"github.com/Enthreeka/gRPC-nmap/pkg/logger"
 	"github.com/Enthreeka/gRPC-nmap/pkg/nmap"
 	vulvmap "github.com/Ullaakut/nmap/v3"
 )
 
 type netVulnSerice struct {
 	nmap *nmap.Nmap
+	log  *logger.Logger
 }
 
-func NewNetVulnGrpcService(nmap *nmap.Nmap) NetVulnService {
+func NewNetVulnGrpcService(nmap *nmap.Nmap, log *logger.Logger) NetVulnService {
 	return &netVulnSerice{
 		nmap: nmap,
+		log:  log,
 	}
 }
 
 func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest) (*pb.CheckVulnResponse, error) {
+
 	result, err := n.nmap.Scanner(ctx, req)
 	if err != nil {
-		log.Printf("error during nmap scan: %v", err)
+		n.log.Error("error during nmap scan: %v", err)
 		return nil, err
 	}
 
@@ -32,6 +35,10 @@ func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest)
 	}
 
 	for _, host := range result.Hosts {
+		if len(host.Ports) == 0 || len(host.Addresses) == 0 {
+			continue
+		}
+
 		targetResult := &pb.TargetResult{
 			Target:   host.Addresses[0].String(),
 			Services: make([]*pb.Service, 0),
@@ -46,10 +53,8 @@ func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest)
 				Vulns:   make([]*pb.Vulnerability, 0),
 			}
 
-			vulns := createCvssAndId(&port)
-			for _, vuln := range vulns {
-				service.Vulns = append(service.Vulns, vuln)
-			}
+			vulns := n.createCvssAndId(&port)
+			service.Vulns = append(service.Vulns, vulns...)
 
 			targetResult.Services = append(targetResult.Services, service)
 		}
@@ -59,7 +64,7 @@ func (n *netVulnSerice) CheckVuln(ctx context.Context, req *pb.CheckVulnRequest)
 	return response, nil
 }
 
-func createCvssAndId(port *vulvmap.Port) []*pb.Vulnerability {
+func (n *netVulnSerice) createCvssAndId(port *vulvmap.Port) []*pb.Vulnerability {
 	vulns := make([]*pb.Vulnerability, 0)
 
 	for _, script := range port.Scripts {
@@ -78,7 +83,7 @@ func createCvssAndId(port *vulvmap.Port) []*pb.Vulnerability {
 					case "cvss":
 						cvssFloat, err := strconv.ParseFloat(el.Value, 32)
 						if err != nil {
-							log.Printf("failed to convert string to float64: %v", err)
+							n.log.Error("failed to convert string to float64: %v", err)
 						}
 						vuln.CvssScore = float32(cvssFloat)
 					}
@@ -87,5 +92,7 @@ func createCvssAndId(port *vulvmap.Port) []*pb.Vulnerability {
 			}
 		}
 	}
+
+	n.log.Info("Created vulnerabilities for port: %d", port.ID)
 	return vulns
 }

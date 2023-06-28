@@ -21,8 +21,5 @@ jobs:
       - name: Build
         run: make build
 
-      - name: Run Server
-        run: make server
-
       - name: Test
         run: make test

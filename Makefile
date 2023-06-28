@@ -1,11 +1,11 @@
 build:
-	go build -o app
+	go build -o ./bin/netvuln main.go
 
 lint:
 	golangci-lint run
 
 test:
-	go test -v ./internal/usecase/netvuln_test.go
+	go test  ./internal/usecase/netvuln_test.go
 	
 server:
 	go run ./cmd/server/main.go

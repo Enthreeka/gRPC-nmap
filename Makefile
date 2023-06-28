@@ -1,5 +1,5 @@
 build:
-	go build ./cmd/server/main.go
+	go build -o app
 
 lint:
 	golangci-lint run

@@ -1,5 +1,5 @@
 build:
-	go build -o ./bin/netvuln main.go
+	go build -o bin/netvuln main.go
 
 lint:
 	golangci-lint run

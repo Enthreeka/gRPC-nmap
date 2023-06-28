@@ -14,7 +14,7 @@ import (
 
 func main() {
 
-	configPath := "C:/Users/world/go-workspace/gRPC-nmap/configs/config.json"
+	configPath := "configs/config.json"
 	log := logger.New()
 
 	cfg, err := config.New(configPath)

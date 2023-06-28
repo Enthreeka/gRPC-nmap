@@ -10,7 +10,7 @@ func main() {
 
 	log := logger.New()
 
-	configPath := "C:/Users/world/go-workspace/gRPC-nmap/configs/config.json"
+	configPath := "configs/config.json"
 
 	cfg, err := config.New(configPath)
 	if err != nil {
